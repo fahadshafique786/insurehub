@@ -8,7 +8,7 @@ use App\Http\Controllers\API\HomeController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API RoutesAuthController
 |--------------------------------------------------------------------------
 |
 | Here is where you can register API routes for your application. These
@@ -17,13 +17,13 @@ use App\Http\Controllers\API\HomeController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->post('/user', function (Request $request) {
     return $request->user();
 });
 
 Route::post('register',[AuthController::class,'register'])->name('register');
 Route::post('login', [AuthController::class,'login'])->name('login');
-Route::get('view-profile',[AuthController::class,'viewProfile'])->name('view.prfile');
+Route::post('view-profile',[AuthController::class,'viewProfile'])->name('view.prfile');
 Route::get('get_classes',[ClassesController::class,'getClasses'])->name('get.classes');
 Route::get('home',[HomeController::class,'index'])->name('home');
 Route::get('sub-classess',[ClassesController::class,'subClasses'])->name('subClasses');

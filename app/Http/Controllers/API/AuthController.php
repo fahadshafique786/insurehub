@@ -87,13 +87,14 @@ class AuthController extends BaseController
         }
         $user = Auth::user();
         return $this->sendResponse($user,'User login successfully.');
-       
+
         //return $this->sendResponse($data,'User login successfully.');
     }
 
 
     public function viewProfile(Request $request){
 
+//        dd(1230);
         $validator = Validator::make($request->all(),[
             "id" => 'required'
         ]);
@@ -101,7 +102,7 @@ class AuthController extends BaseController
 
             return $this->sendError('Validation Error.', $validator->errors());
         }
-      
+
         $data = User::find($request->id);
 
         if(!$data == NULL){
@@ -115,7 +116,7 @@ class AuthController extends BaseController
         }
 
     }
-    
+
     private function userExits($email)
     {
 
