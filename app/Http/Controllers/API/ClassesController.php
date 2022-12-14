@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\Classes;
 use Exception;
@@ -19,11 +20,22 @@ class ClassesController extends BaseController
 
         try{
 
-            $classImageUrl = url('classes_img') . '/';
 
-            $classes = Classes::select(DB::raw("id, name , CONCAT('$classImageUrl',logo) AS logo"))->get();
+            $ozoneResponse = $this->ozoneGetMainClassesList();
 
-            return $this->sendResponse($classes,"Classes List");
+            if($ozoneResponse->code == 200) {
+                $classes =  $ozoneResponse->data->main_classes;
+                return $this->sendResponse($classes,"Classes List");
+            }
+            else{
+                return $this->sendError('Classes not found.',$e->getMessage());
+            }
+
+
+            //            $classImageUrl = url('classes_img') . '/';
+//
+//            $classes = Classes::select(DB::raw("id, name , CONCAT('$classImageUrl',logo) AS logo"))->get();
+
 
         }catch(Exception $e){
 
@@ -56,9 +68,31 @@ class ClassesController extends BaseController
             return $this->sendError('Sub Classes not found.');
 
         }
+    }
 
+    public function ozoneGetMainClassesList(){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+//            'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3N0YWdpbmcuaW54dXJlaHViLm8zem9uZWQuY29tL2FwaS9jdXN0b21lci9sb2dpbiIsImlhdCI6MTY2MzA2NTQxMCwiZXhwIjo1NTY2MzA2NTQxMCwibmJmIjoxNjYzMDY1NDEwLCJqdGkiOiJsWFRQT2M5cVVSYXdvNWxhIiwic3ViIjozODUsInBydiI6IjYyNDU3NTM5YTc3YjY3MDUyOWZiZDY3NTNmMGIzMTE0NGE5YTY3M2UifQ.L55zMiibVbmB57v2ni03VS59P7BiV0g_PZALYBqg414'
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', 'https://live.inxurehub.o3zoned.com/api/get_mainclasses',$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
 
     }
+
+
 
     public function getVehicle(Request $request){
 
@@ -97,4 +131,8 @@ class ClassesController extends BaseController
         }
 
     }
+
+
+
+
 }
