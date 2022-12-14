@@ -2,6 +2,7 @@
 /public/build
 /public/hot
 /public/profile_img/
+/public/classes_img/
 /public/storage
 /storage/*.key
 /vendor
