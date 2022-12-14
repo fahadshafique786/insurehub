@@ -29,9 +29,9 @@ class AuthController extends BaseController
             'first_name'    => 'required|string',
             'middle_name'   => 'nullable|string',
             'last_name'     => 'required|string',
-            'user_name'     => 'required',
-            'cnic'          => 'required|numeric|digits:13',
-            'email'         => 'required|email|unique:users',
+            'user_name'     => 'required|unique:users,user_name',
+            'cnic'          => 'required|numeric|digits:13|unique:users,cnic',
+            'email'         => 'required|email|unique:users,email',
             'password'      => 'required',
             'profile_img'      => 'required',
             'mobile_no'      => 'required',
@@ -39,7 +39,7 @@ class AuthController extends BaseController
 
         if ($data->fails()) {
 
-            return $this->sendError('Validation Error.', $data->errors());
+            return $this->sendError('Validation Error.', $data->errors(),422);
         }
 
         try {
@@ -62,7 +62,7 @@ class AuthController extends BaseController
                 $extension       = $file->getClientOriginalExtension();
                 $image_convert   = time() . '.' . $extension;
                 $destinationPath = url('/profile_img/');
-//                'https://developer.inxurehub.com/public/profile_img/'
+
                 $file->move(public_path('profile_img'), $image_convert);
                 $user->profile_img = $destinationPath . $image_convert;
                 $imagePath = public_path('profile_img/').$image_convert;
@@ -73,9 +73,6 @@ class AuthController extends BaseController
 
             unset($user->avatar);
 
-//            dd(333,$response,$response->code,$response->data->token);
-
-
             if($response->code == 200){
 
                 $user->save();
@@ -83,40 +80,61 @@ class AuthController extends BaseController
                 $user->accessToken = $response->data->token;
             }
             else{
-                return $this->sendError('User Not registered.');
+
+                return $this->sendError($response->code ,'User Not registered.');
             }
 
             return $this->sendResponse($user, 'User register successfully.');
 
         } catch (Exception $e) {
 
-            dd(123,$e->getMessage());
-            return $this->sendError('User Not registered.');
+            return $this->sendError('User Not registered',$e->getMessage(),'404');
+
         }
     }
 
     public function login(Request $request)
     {
+        try {
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255',
-            'password' => 'required'
-        ]);
 
-        if ($validator->fails()) {
+            $validator = Validator::make($request->all(), [
+                'user_name' => 'required|string|max:100',
+                'password' => 'required'
+            ]);
 
-            return $this->sendError('Validation Error.', $validator->errors());
+            if ($validator->fails()) {
+
+                return $this->sendError('Validation Error.', $validator->errors());
+            }
+
+            $credentials = $request->only(['user_name', 'password']);
+
+            $response = $this->ozoneCustomerLogin($request);
+
+            if($response->code == 200){
+
+                if(!Auth::attempt($credentials)){
+                    return $this->sendError('Invalid Username or Password.');
+                }
+
+                $user = Auth::user();
+
+                $user->accessToken = $response->data->token;
+
+                return $this->sendResponse($user,'User login successfully.');
+
+            }
+            else{
+                return $this->sendError($response->code ,'Invalid Credentials.');
+            }
+
+        } catch (Exception $e) {
+
+            return $this->sendError('Invalid Credentials',$e->getMessage(),'404');
+
         }
 
-        $credentials = $request->only(['email', 'password']);
-
-        if(!Auth::attempt($credentials)){
-            return $this->sendError('Invalid Email and Password.');
-        }
-        $user = Auth::user();
-        return $this->sendResponse($user,'User login successfully.');
-
-        //return $this->sendResponse($data,'User login successfully.');
     }
 
 
@@ -211,8 +229,36 @@ class AuthController extends BaseController
 
         $response = json_decode($res->getBody());
 
-
         return $response;
     }
+
+    public function ozoneCustomerLogin($request){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $customerData = [
+            'multipart' => [
+                [
+                    'name' => 'username',
+                    'contents' => $request->user_name
+                ],
+                [
+                    'name' => 'password',
+                    'contents' => $request->password
+                ]
+            ]];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/login');
+
+        $res = $guzzleClient->sendAsync($ozoneRequest, $customerData)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
+
+    }
+
 
 }
