@@ -26,6 +26,6 @@ Route::post('login', [AuthController::class,'login'])->name('login');
 Route::post('profile',[AuthController::class,'viewProfile'])->name('view.profile');
 Route::get('classes',[ClassesController::class,'getClasses'])->name('get.classes');
 Route::get('home',[HomeController::class,'index'])->name('home');
-Route::get('sub-classes',[ClassesController::class,'subClasses'])->name('subClasses');
+Route::get('sub-classes',[ClassesController::class,'getSubClasses'])->name('sub-classes');
 Route::get('get-vehicle',[ClassesController::class,'getVehicle'])->name('vehicle');
 Route::get('vehicle-by-id',[ClassesController::class,'getVehicleByID'])->name('vehicle-by-id');

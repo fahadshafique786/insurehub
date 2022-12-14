@@ -20,7 +20,6 @@ class ClassesController extends BaseController
 
         try{
 
-
             $ozoneResponse = $this->ozoneGetMainClassesList();
 
             if($ozoneResponse->code == 200) {
@@ -32,9 +31,46 @@ class ClassesController extends BaseController
             }
 
 
-            //            $classImageUrl = url('classes_img') . '/';
-//
-//            $classes = Classes::select(DB::raw("id, name , CONCAT('$classImageUrl',logo) AS logo"))->get();
+        }catch(Exception $e){
+
+
+            return $this->sendError('Classes not found.',$e->getMessage());
+        }
+    }
+
+    public function getSubClasses(Request $request){
+
+        try{
+
+            $data = Validator::make($request->all(), [
+                'class_id' => 'required|integer',
+            ]);
+
+            if ($data->fails()) {
+                return $this->sendError('Validation Error.', $data->errors());
+            }
+
+            $ozoneResponse = $this->ozoneGetSubClassesList();
+
+            if($ozoneResponse->code == 200) {
+
+                $subClassesObject =  $ozoneResponse->data->sub_classes;
+
+//                dd($subClassesObject);
+
+                $subClassesListByMainClass = [];
+                foreach($subClassesObject as $obj){
+//                    dd($obj ,$obj->class_id == $request->class_id , $obj->class_id,  $request->class_id);
+                    if($obj->class_id == $request->class_id){
+                        $subClassesListByMainClass[] = $obj;
+                    }
+                }
+
+                return $this->sendResponse($subClassesListByMainClass,"List of Sub Classes By Main Class");
+            }
+            else{
+                return $this->sendError('Classes not found.',$e->getMessage());
+            }
 
 
         }catch(Exception $e){
@@ -42,7 +78,24 @@ class ClassesController extends BaseController
 
             return $this->sendError('Classes not found.',$e->getMessage());
         }
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function subClasses(Request $request){
 
@@ -80,10 +133,30 @@ class ClassesController extends BaseController
             'Accept' => 'application/json',
             'distribution' => 'd2c',
             'interface' => 'api',
-//            'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3N0YWdpbmcuaW54dXJlaHViLm8zem9uZWQuY29tL2FwaS9jdXN0b21lci9sb2dpbiIsImlhdCI6MTY2MzA2NTQxMCwiZXhwIjo1NTY2MzA2NTQxMCwibmJmIjoxNjYzMDY1NDEwLCJqdGkiOiJsWFRQT2M5cVVSYXdvNWxhIiwic3ViIjozODUsInBydiI6IjYyNDU3NTM5YTc3YjY3MDUyOWZiZDY3NTNmMGIzMTE0NGE5YTY3M2UifQ.L55zMiibVbmB57v2ni03VS59P7BiV0g_PZALYBqg414'
         ];
 
         $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', 'https://live.inxurehub.o3zoned.com/api/get_mainclasses',$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
+
+    }
+
+    public function ozoneGetSubClassesList(){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', 'https://live.inxurehub.o3zoned.com/api/get_subclasses',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
 
         $response = json_decode($res->getBody());
