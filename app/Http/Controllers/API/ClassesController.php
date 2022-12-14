@@ -11,21 +11,27 @@ use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use App\Models\SubClassess;
 use Validator;
+use Illuminate\Support\Facades\DB as DB;
 
 class ClassesController extends BaseController
 {
     public function getClasses(){
-        
+
         try{
-            $classes = Classes::get();
+
+            $classImageUrl = url('classes_img') . '/';
+
+            $classes = Classes::select(DB::raw("id, name , CONCAT('$classImageUrl',logo) AS logo"))->get();
 
             return $this->sendResponse($classes,"Classes List");
 
         }catch(Exception $e){
-            
-            return $this->sendError('Classes not found.');
+
+
+            return $this->sendError('Classes not found.',$e->getMessage());
         }
     }
+
     public function subClasses(Request $request){
 
         $data = Validator::make($request->all(), [
@@ -43,7 +49,7 @@ class ClassesController extends BaseController
 
         if(filled($subClassess)){
 
-            return $this->sendResponse($subClassess,"Sub Classess");
+            return $this->sendResponse($subClassess,"Sub Classes");
 
         }else{
 
@@ -62,7 +68,7 @@ class ClassesController extends BaseController
 
             return $this->sendResponse($vehicleDetails,'Vehicle');
         }else{
-            
+
             return $this->sendError('Vehicle not found');
         }
     }
