@@ -12,13 +12,9 @@ class ProductController extends BaseController
 {
     public function getProductsList(Request $request){
 
-        dd($request->all());
-
         try{
 
-            dd($request->all());
-
-            $data = Validator::make($request->all(), [
+            $data = Validator::make($request->formDatas, [
                 'sub_class_id' => 'required|integer',
                 'new_old' => 'required',
                 'manufacturing_year' => 'required',
@@ -26,7 +22,7 @@ class ProductController extends BaseController
                 'tracker_required' => 'required|integer',
                 'vehicle_make' => 'required|integer',
                 'vehicle_model' => 'required|integer',
-//                'vehicle_value' => 'required',
+                'vehicle_value' => 'required|numeric|min:100000',
             ]);
 
             if ($data->fails()) {
@@ -48,9 +44,13 @@ class ProductController extends BaseController
 
         }catch(Exception $e){
 
-            dd($e->getMessage());
+            $exceptionCode = "400";
+//            dd($e->getCode());
+            if($e->getCode()){
+                $exceptionCode = $e->getCode();
+            }
 
-            return $this->sendError('Plans not found.',$e->getMessage());
+            return $this->sendError('Plans not found.',$e->getMessage(),$exceptionCode);
         }
     }
 
@@ -64,27 +64,27 @@ class ProductController extends BaseController
             'multipart' => [
                 [
                     'name' => 'subclass_id',
-                    'contents' => $request->sub_class_id
+                    'contents' => $request->formDatas['sub_class_id']
                 ],
                 [
                     'name' => 'new_old[]',
-                    'contents' => $request->new_old
+                    'contents' => $request->formDatas['new_old']
                 ],
                 [
                     'name' => 'manufacturing_year[]',
-                    'contents' => $request->manufacturing_year
+                    'contents' => $request->formDatas['manufacturing_year']
                 ],
                 [
                     'name' => 'vehicle_value[]',
-                    'contents' => $request->vehicle_value
+                    'contents' => $request->formDatas['vehicle_value']
                 ],
                 [
                     'name' => 'assembly_type[]',
-                    'contents' => $request->assembly_type
+                    'contents' => $request->formDatas['assembly_type']
                 ],
                 [
                     'name' => 'tracker_required[]',
-                    'contents' => $request->tracker_required
+                    'contents' => $request->formDatas['tracker_required']
                 ],
                 [
                     'name' => 'quantity[]',
@@ -101,11 +101,11 @@ class ProductController extends BaseController
                 ],
                 [
                     'name' => 'vehicle_make[]',
-                    'contents' => $request->vehicle_make
+                    'contents' => $request->formDatas['vehicle_make']
                 ],
                 [
                     'name' => 'vehicle_model[]',
-                    'contents' => $request->vehicle_model
+                    'contents' => $request->formDatas['vehicle_model']
                 ]
             ]
         ];
