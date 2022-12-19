@@ -12,11 +12,7 @@ class ProductController extends BaseController
 {
     public function getProductsList(Request $request){
 
-//        dd($request->formDatas['manufacturing_year']);
-
         try{
-
-//            dd($request->all());
 
             $data = Validator::make($request->formDatas, [
                 'sub_class_id' => 'required|integer',
@@ -26,7 +22,7 @@ class ProductController extends BaseController
                 'tracker_required' => 'required|integer',
                 'vehicle_make' => 'required|integer',
                 'vehicle_model' => 'required|integer',
-//                'vehicle_value' => 'required',
+                'vehicle_value' => 'required|numeric|min:100000',
             ]);
 
             if ($data->fails()) {
@@ -48,9 +44,13 @@ class ProductController extends BaseController
 
         }catch(Exception $e){
 
-//            dd($e->getMessage());
+            $exceptionCode = "400";
+//            dd($e->getCode());
+            if($e->getCode()){
+                $exceptionCode = $e->getCode();
+            }
 
-            return $this->sendError('Plans not found.',$e->getMessage());
+            return $this->sendError('Plans not found.',$e->getMessage(),$exceptionCode);
         }
     }
 
