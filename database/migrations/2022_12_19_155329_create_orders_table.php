@@ -15,6 +15,19 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id')->nullable();
+            $table->integer('plan_id')->nullable();
+            $table->integer('subclass_id')->nullable();
+            $table->integer('customer_quotation_id')->nullable();
+            $table->json('request_json')->nullable();
+            $table->json('response_json')->nullable();
+            $table->integer('product_id')->nullable();
+            $table->integer('step_no')->nullable();
+            $table->string('status')->nullable();
+            $table->string('payment_status')->nullable();
+            $table->timestamp('quotation_requested_at')->useCurrent();
+            $table->timestamp('quotation_approved_at')->useCurrent();
+
             $table->timestamps();
         });
     }

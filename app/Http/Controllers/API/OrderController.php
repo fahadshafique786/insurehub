@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 
 class OrderController extends BaseController
 {
     public function GenerateOrder(Request $request){
+
+//        dd($request->user());
 
         try{
 
@@ -35,7 +39,26 @@ class OrderController extends BaseController
             $ozoneResponse = $this->ozoneGenerateOrder($request);
 
             if($ozoneResponse->code == 200) {
+
                 $orderSuccessResponse =  $ozoneResponse->data;
+
+//                dd($orderSuccessResponse->quotation_details[0]->);
+
+                $orderRequest = [
+//                    'user_id' => auth()->user()->id,
+                    'plan_id'   => $request->formDatas['plan_id'],
+                    'subclass_id'   => $request->formDatas['sub_class_id'],
+                    'request_json' => json_encode($request->formDatas),
+                    'customer_quotation_id' => $orderSuccessResponse->quotation_details[0]->customer_quotation_id,
+                    'product_id' => $orderSuccessResponse->quotation_details[0]->product_id,
+                    'response_json' => json_encode($orderSuccessResponse),
+                    'step_no'   => 2,
+                    'status' => $orderSuccessResponse->quotation_details[0]->status,
+                    'payment_status' => $orderSuccessResponse->quotation_details[0]->payment_status,
+                ];
+
+                Order::create($orderRequest);
+
                 return $this->sendResponse($orderSuccessResponse,"Data Saved");
             }
             else{

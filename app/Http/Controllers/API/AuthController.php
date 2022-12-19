@@ -120,6 +120,8 @@ class AuthController extends BaseController
 
                 $user = Auth::user();
 
+                $user->token = $user->createToken("API_TOKEN")->plainTextToken;
+
                 $user->accessToken = $response->data->token;
 
                 return $this->sendResponse($user,'User login successfully.');
