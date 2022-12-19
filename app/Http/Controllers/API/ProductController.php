@@ -26,7 +26,7 @@ class ProductController extends BaseController
             ]);
 
             if ($data->fails()) {
-                return $this->sendError('Validation Error.', $data->errors());
+                return $this->sendError('Validation Error.', $data->errors(),422);
             }
 
 
