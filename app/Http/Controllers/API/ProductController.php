@@ -45,7 +45,6 @@ class ProductController extends BaseController
         }catch(Exception $e){
 
             $exceptionCode = "400";
-//            dd($e->getCode());
             if($e->getCode()){
                 $exceptionCode = $e->getCode();
             }
@@ -89,7 +88,6 @@ class ProductController extends BaseController
                 [
                     'name' => 'quantity[]',
                     'contents' => '1'
-//                    'contents' => $request->quantity
                 ],
                 [
                     'name' => 'provide_information_through',

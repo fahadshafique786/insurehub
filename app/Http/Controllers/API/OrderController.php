@@ -14,26 +14,26 @@ class OrderController extends BaseController
 
         try{
 
-            $data = Validator::make($request->all(), [
+            $data = Validator::make($request->formDatas, [
                 'sub_class_id' => 'required|integer',
                 'plan_id' => 'required',
-                'price' => 'required',
+                'price' => 'required|numeric',
                 'new_old' => 'required',
                 'manufacturing_year' => 'required',
                 'assembly_type' => 'required|integer',
                 'tracker_required' => 'required|integer',
                 'vehicle_make' => 'required|integer',
                 'vehicle_model' => 'required|integer',
-                'vehicle_value' => 'required',
+                'vehicle_value' => 'required|numeric|min:100000',
             ]);
 
+
             if ($data->fails()) {
-                return $this->sendError('Validation Error.', $data->errors());
+                return $this->sendError('Validation Error.', $data->errors(),422);
             }
 
             $ozoneResponse = $this->ozoneGenerateOrder($request);
 
-//            dd($ozoneResponse);
             if($ozoneResponse->code == 200) {
                 $orderSuccessResponse =  $ozoneResponse->data;
                 return $this->sendResponse($orderSuccessResponse,"Data Saved");
@@ -45,9 +45,13 @@ class OrderController extends BaseController
 
         }catch(Exception $e){
 
-            dd($e->getMessage());
+            $exceptionCode = "400";
+            if($e->getCode()){
+                $exceptionCode = $e->getCode();
+            }
 
-            return $this->sendError('Data not Saved.',$e->getMessage());
+            return $this->sendError('Data not saved!',$e->getMessage(),$exceptionCode);
+
         }
     }
 
@@ -63,35 +67,35 @@ class OrderController extends BaseController
             'multipart' => [
                 [
                     'name' => 'plan_id',
-                    'contents' => $request->plan_id
+                    'contents' => $request->formDatas['plan_id']
                 ],
                 [
                     'name' => 'product_price',
-                    'contents' => $request->price
+                    'contents' => $request->formDatas['price']
                 ],
                 [
                     'name' => 'subclass_id',
-                    'contents' => $request->sub_class_id
+                    'contents' => $request->formDatas['sub_class_id']
                 ],
                 [
                     'name' => 'new_old[]',
-                    'contents' => $request->new_old
+                    'contents' => $request->formDatas['new_old']
                 ],
                 [
                     'name' => 'manufacturing_year[]',
-                    'contents' => $request->manufacturing_year
+                    'contents' => $request->formDatas['manufacturing_year']
                 ],
                 [
                     'name' => 'vehicle_value[]',
-                    'contents' => $request->vehicle_value
+                    'contents' => $request->formDatas['vehicle_value']
                 ],
                 [
                     'name' => 'assembly_type[]',
-                    'contents' => $request->assembly_type
+                    'contents' => $request->formDatas['assembly_type']
                 ],
                 [
                     'name' => 'tracker_required[]',
-                    'contents' => $request->tracker_required
+                    'contents' => $request->formDatas['tracker_required']
                 ],
                 [
                     'name' => 'quantity[]',
@@ -107,11 +111,11 @@ class OrderController extends BaseController
                 ],
                 [
                     'name' => 'vehicle_make[]',
-                    'contents' => $request->vehicle_make
+                    'contents' => $request->formDatas['vehicle_make']
                 ],
                 [
                     'name' => 'vehicle_model[]',
-                    'contents' => $request->vehicle_model
+                    'contents' => $request->formDatas['vehicle_model']
                 ]
             ]
         ];
