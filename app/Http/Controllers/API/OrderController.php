@@ -8,41 +8,38 @@ use Exception;
 use Illuminate\Support\Facades\Validator;
 
 
-class ProductController extends BaseController
+class OrderController extends BaseController
 {
-    public function getProductsList(Request $request){
-
-        dd($request->all());
+    public function GenerateOrder(Request $request){
 
         try{
 
-            dd($request->all());
-
             $data = Validator::make($request->all(), [
                 'sub_class_id' => 'required|integer',
+                'plan_id' => 'required',
+                'price' => 'required',
                 'new_old' => 'required',
                 'manufacturing_year' => 'required',
                 'assembly_type' => 'required|integer',
                 'tracker_required' => 'required|integer',
                 'vehicle_make' => 'required|integer',
                 'vehicle_model' => 'required|integer',
-//                'vehicle_value' => 'required',
+                'vehicle_value' => 'required',
             ]);
 
             if ($data->fails()) {
                 return $this->sendError('Validation Error.', $data->errors());
             }
 
+            $ozoneResponse = $this->ozoneGenerateOrder($request);
 
-            $ozoneResponse = $this->ozoneGetCustomerQuotation($request);
-
-
+//            dd($ozoneResponse);
             if($ozoneResponse->code == 200) {
-                $customFields =  $ozoneResponse->data->products;
-                return $this->sendResponse($customFields,"Product Plans List");
+                $orderSuccessResponse =  $ozoneResponse->data;
+                return $this->sendResponse($orderSuccessResponse,"Data Saved");
             }
             else{
-                return $this->sendError('Plans not found.');
+                return $this->sendError('Data not saved.',$ozoneResponse);
             }
 
 
@@ -50,18 +47,28 @@ class ProductController extends BaseController
 
             dd($e->getMessage());
 
-            return $this->sendError('Plans not found.',$e->getMessage());
+            return $this->sendError('Data not Saved.',$e->getMessage());
         }
     }
 
-    public function ozoneGetCustomerQuotation($request){
+    public function ozoneGenerateOrder($request){
 
+        $bearerToken = $request->header()['authorization'][0];
         $guzzleClient = new Client([
             'verify' => false
         ]);
 
         $options = [
+
             'multipart' => [
+                [
+                    'name' => 'plan_id',
+                    'contents' => $request->plan_id
+                ],
+                [
+                    'name' => 'product_price',
+                    'contents' => $request->price
+                ],
                 [
                     'name' => 'subclass_id',
                     'contents' => $request->sub_class_id
@@ -89,7 +96,6 @@ class ProductController extends BaseController
                 [
                     'name' => 'quantity[]',
                     'contents' => '1'
-//                    'contents' => $request->quantity
                 ],
                 [
                     'name' => 'provide_information_through',
@@ -110,16 +116,21 @@ class ProductController extends BaseController
             ]
         ];
 
+//        dd($options);
+
         $headers = [
             'Accept' => 'application/json',
             'distribution' => 'd2c',
             'interface' => 'api',
+            'Authorization'=> $bearerToken
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer_quotation',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/quotation',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
+
+//        dd($response);
 
         return $response;
     }

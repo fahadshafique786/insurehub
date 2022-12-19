@@ -6,6 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClassesController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,3 +37,5 @@ Route::get('get-vehicle',[ClassesController::class,'getVehicle'])->name('vehicle
 Route::get('vehicle-by-id',[ClassesController::class,'getVehicleByID'])->name('vehicle-by-id');
 
 Route::post('product/list',[ProductController::class,'getProductsList'])->name('product-list');
+
+Route::post('order/generate',[OrderController::class,'GenerateOrder'])->name('order-generate');
