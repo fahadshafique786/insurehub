@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Http\Controllers\API\BaseController;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use App\Models\Classes;
 use Exception;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use App\Models\SubClassess;
-use Validator;
-use Illuminate\Support\Facades\DB as DB;
+use Illuminate\Support\Facades\Validator;
 
 class ClassesController extends BaseController
 {
@@ -27,7 +23,7 @@ class ClassesController extends BaseController
                 return $this->sendResponse($classes,"Classes List");
             }
             else{
-                return $this->sendError('Classes not found.',$e->getMessage());
+                return $this->sendError('Classes not found.');
             }
 
 
@@ -56,11 +52,9 @@ class ClassesController extends BaseController
 
                 $subClassesObject =  $ozoneResponse->data->sub_classes;
 
-//                dd($subClassesObject);
-
                 $subClassesListByMainClass = [];
+
                 foreach($subClassesObject as $obj){
-//                    dd($obj ,$obj->class_id == $request->class_id , $obj->class_id,  $request->class_id);
                     if($obj->class_id == $request->class_id){
                         $subClassesListByMainClass[] = $obj;
                     }
@@ -69,7 +63,7 @@ class ClassesController extends BaseController
                 return $this->sendResponse($subClassesListByMainClass,"List of Sub Classes By Main Class");
             }
             else{
-                return $this->sendError('Classes not found.',$e->getMessage());
+                return $this->sendError('Classes not found.');
             }
 
 
@@ -79,49 +73,73 @@ class ClassesController extends BaseController
             return $this->sendError('Classes not found.',$e->getMessage());
         }
 
+    }
+
+    public function getSubClassFormAttributes(Request $request){
+
+        try{
+
+            $data = Validator::make($request->all(), [
+                'sub_class_id' => 'required|integer',
+            ]);
+
+            if ($data->fails()) {
+                return $this->sendError('Validation Error.', $data->errors());
+            }
+
+            $ozoneResponse = $this->ozoneGetSubClassFormsAttributes($request->sub_class_id);
+
+            if($ozoneResponse->code == 200) {
+                $customFields =  $ozoneResponse->data->risk_sections->Quote_Information->custom_fields;
+                return $this->sendResponse($customFields,"Classes List");
+            }
+            else{
+                return $this->sendError('Classes not found.');
+            }
 
 
+        }catch(Exception $e){
 
+            return $this->sendError('Classes not found.',$e->getMessage());
+        }
+    }
+
+    public function getChildFormFieldValues(Request $request){
+
+        try{
+
+            $data = Validator::make($request->all(), [
+                'child_form_field_id' => 'required|integer',
+                'parent_value_id' => 'required|integer',
+            ]);
+
+            if ($data->fails()) {
+                return $this->sendError('Validation Error.', $data->errors());
+            }
+
+
+            $ozoneResponse = $this->ozoneGetChildFormFieldValues($request);
+
+            if($ozoneResponse->code == 200) {
+
+                $data =  $ozoneResponse->data;
+                return $this->sendResponse($data,"Form Field Values");
+            }
+            else{
+                return $this->sendError('Form Field Values Not Found.');
+            }
+
+
+        }catch(Exception $e){
+
+
+            return $this->sendError('Form Field Values Not Found.',$e->getMessage());
+        }
     }
 
 
+    /************* OZONE API INTEGRATION ************/
 
-
-
-
-
-
-
-
-
-
-
-
-    public function subClasses(Request $request){
-
-        $data = Validator::make($request->all(), [
-
-            'class_id' => 'required',
-
-        ]);
-
-        if ($data->fails()) {
-
-            return $this->sendError('Validation Error.', $data->errors());
-        }
-
-        $subClassess = SubClassess::where('class_id',$request->class_id)->get();
-
-        if(filled($subClassess)){
-
-            return $this->sendResponse($subClassess,"Sub Classes");
-
-        }else{
-
-            return $this->sendError('Sub Classes not found.');
-
-        }
-    }
 
     public function ozoneGetMainClassesList(){
 
@@ -165,6 +183,67 @@ class ClassesController extends BaseController
 
     }
 
+    public function ozoneGetSubClassFormsAttributes($subClassId){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $options = [
+            'multipart' => [
+                [
+                    'name' => 'subclass_id',
+                    'contents' => $subClassId
+                ]
+            ]
+        ];
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/get_subclass_form',$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
+    }
+
+    public function ozoneGetChildFormFieldValues($request){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $options = [
+            'multipart' => [
+                [
+                    'name' => 'child_form_field_id',
+                    'contents' => $request->child_form_field_id
+                ],
+                [
+                    'name' => 'parent_value_id',
+                    'contents' => $request->parent_value_id
+                ]
+            ]
+        ];
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/get_child_form_field_values',$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
+    }
 
 
     public function getVehicle(Request $request){
@@ -205,7 +284,30 @@ class ClassesController extends BaseController
 
     }
 
+    public function subClasses(Request $request){
 
+        $data = Validator::make($request->all(), [
 
+            'class_id' => 'required',
+
+        ]);
+
+        if ($data->fails()) {
+
+            return $this->sendError('Validation Error.', $data->errors());
+        }
+
+        $subClassess = SubClassess::where('class_id',$request->class_id)->get();
+
+        if(filled($subClassess)){
+
+            return $this->sendResponse($subClassess,"Sub Classes");
+
+        }else{
+
+            return $this->sendError('Sub Classes not found.');
+
+        }
+    }
 
 }
