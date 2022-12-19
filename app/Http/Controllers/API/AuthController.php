@@ -64,7 +64,7 @@ class AuthController extends BaseController
                 $destinationPath = url('/profile_img/');
 
                 $file->move(public_path('profile_img'), $image_convert);
-                $user->profile_img = $destinationPath . $image_convert;
+                $user->profile_img = $destinationPath .'/' . $image_convert;
                 $imagePath = public_path('profile_img/').$image_convert;
                 $user->avatar = $imagePath;
             }
