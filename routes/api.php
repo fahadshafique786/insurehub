@@ -40,4 +40,4 @@ Route::post('product/list',[ProductController::class,'getProductsList'])->name('
 
 Route::post('order/generate',[QuotationController::class,'GenerateOrder'])->name('order-generate');
 
-Route::get('customer/quote-fields',[QuotationController::class,'GetQuotationFormFields'])->name('quote-fields');
+Route::post('customer/quote-fields',[QuotationController::class,'GetQuotationFormFields'])->name('quote-fields');
