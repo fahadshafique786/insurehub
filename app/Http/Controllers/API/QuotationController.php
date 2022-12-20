@@ -90,11 +90,12 @@ class QuotationController extends BaseController
                 'date_of_birth' => 'required',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
-                'cnic_number' => 'required|digits:13',
-                'mobile_no' => 'required|numeric|starts_with:92',
+                'cnic_number' => 'required', //|digits:13
+                'mobile_no' => 'required',
                 'city' => 'required|integer',
             ]);
 
+//            |numeric|starts_with:92
 
             if ($data->fails()) {
                 return $this->sendError('Validation Error.', $data->errors(),422);
