@@ -21,6 +21,8 @@ return new class extends Migration
             $table->integer('customer_quotation_id')->nullable();
             $table->json('request_json')->nullable();
             $table->json('response_json')->nullable();
+            $table->json('additional_info_json')->nullable();
+            $table->json('payment_method_info_json')->nullable();
             $table->integer('product_id')->nullable();
             $table->integer('step_no')->nullable();
             $table->string('status')->nullable();

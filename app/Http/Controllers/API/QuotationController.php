@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Exception;
@@ -79,6 +80,60 @@ class QuotationController extends BaseController
         }
     }
 
+    public function SaveQuotationAdditionalInfo(Request $request){
+
+        try{
+
+            $data = Validator::make($request->formDatas, [
+                'customer_quotation_id' => 'required|integer',
+                'quotation_risk_id' => 'required|integer',
+                'date_of_birth' => 'required',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'cnic_number' => 'required|digits:13',
+                'mobile_no' => 'required|numeric|starts_with:92',
+                'city' => 'required|integer',
+            ]);
+
+
+            if ($data->fails()) {
+                return $this->sendError('Validation Error.', $data->errors(),422);
+            }
+
+            $additionalInformationJson = json_encode($request->formDatas);
+
+            $updateArr = [
+                'additional_info_json' => $additionalInformationJson
+            ];
+
+            Order::where('customer_quotation_id',$request->formDatas['customer_quotation_id'])->update($updateArr);
+
+            return $this->sendResponse('',"Quotation Additional Information Data Saved");
+
+//            $ozoneResponse = $this->ozoneSaveQuotationAdditionalInfo($request);
+
+//            if($ozoneResponse->code == 200) {
+//
+//                $orderSuccessResponse =  $ozoneResponse->data;
+//                return $this->sendResponse($orderSuccessResponse,"Quotation Data Updated");
+//            }
+//            else{
+//                return $this->sendError('Quotation Data Update Failed!',$ozoneResponse);
+//            }
+
+
+        }catch(Exception $e){
+
+            $exceptionCode = "400";
+            if($e->getCode()){
+                $exceptionCode = $e->getCode();
+            }
+
+            return $this->sendError('Quotation Data Update Failed!',$e->getMessage(),$exceptionCode);
+
+        }
+    }
+
     public function GetQuotationFormFields(Request $request){
 
         try{
@@ -144,7 +199,6 @@ class QuotationController extends BaseController
 
         return $response;
     }
-
 
     public function ozoneGenerateOrder($request){
 
@@ -223,6 +277,87 @@ class QuotationController extends BaseController
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
+
+        return $response;
+    }
+
+    public function ozoneSaveQuotationAdditionalInfo($request){
+
+        $bearerToken = $request->header('Authorization');
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $options = [
+
+            'multipart' => [
+                [
+                    'name' => 'customer_quotation_id',
+                    'contents' => $request->formDatas['customer_quotation_id']
+                ],
+                [
+                    'name' => 'quotation_risk_id',
+                    'contents' => $request->formDatas['quotation_risk_id']
+                ],
+                [
+                    'name' => 'first_name[]',
+                    'contents' => $request->formDatas['first_name']
+                ],
+                [
+                    'name' => 'last_name[]',
+                    'contents' => $request->formDatas['last_name']
+                ],
+                [
+                    'name' => 'date_of_birth[]',
+                    'contents' => Carbon::parse($request->formDatas['date_of_birth'])->format('d-m-Y')
+//                    'contents' => date('d-m-y',strtotime($request->formDatas['date_of_birth']))
+                ],
+                [
+                    'name' => 'cnic_number[]',
+                    'contents' => $request->formDatas['cnic_number']
+                ],
+                [
+                    'name' => 'mobile_no[]',
+                    'contents' => $request->formDatas['mobile_no']
+                ],
+                [
+                    'name' => 'email_address[]',
+                    'contents' => $request->formDatas['email_id']
+                ],
+                [
+                    'name' => 'city[]',
+                    'contents' => $request->formDatas['city']
+                ],
+                [
+                    'name' => 'parent_id[]',
+                    'contents' => '0'
+                ]
+            ]
+        ];
+
+//        $options['multipart'] = [
+//            [
+//                'name' => 'additional_accessories[]',
+//                'contents' => $request->formDatas['additional_accessories']
+//            ]
+//        ];
+
+//        dd($options);
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+            'Authorization'=> $bearerToken
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/quotation_additional_information',$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
+
+        $response = json_decode($res->getBody());
+
+        dd($response);
 
         return $response;
     }

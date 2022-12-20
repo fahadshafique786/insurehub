@@ -14,6 +14,8 @@ class Order extends Model
         'customer_quotation_id',
         'request_json',
         'response_json',
+        'additional_info_json',
+        'payment_method_info_json',
         'plan_id',
         'subclass_id',
         'product_id',
