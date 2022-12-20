@@ -57,7 +57,7 @@ class QuotationController extends BaseController
                 return $this->sendResponse($orderSuccessResponse,"Data Saved");
             }
             else{
-                return $this->sendError('Data not saved.',$ozoneResponse);
+                return $this->sendError('Data not saved.',$request->header('Authorization'));
             }
 
 
