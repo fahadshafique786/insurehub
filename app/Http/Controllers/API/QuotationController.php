@@ -54,10 +54,16 @@ class QuotationController extends BaseController
 
                 Order::create($orderRequest);
 
-                return $this->sendResponse($orderSuccessResponse,"Data Saved");
+                $orderRequest['quotation_risk_id'] = $orderSuccessResponse->risks[0]->id;
+
+                unset($orderRequest['step_no']);
+                unset($orderRequest['request_json']);
+                unset($orderRequest['response_json']);
+
+                return $this->sendResponse($orderRequest,"Data Saved");
             }
             else{
-                return $this->sendError('Data not saved.',$request->header('Authorization'));
+                return $this->sendError('Data not saved.',$ozoneResponse);
             }
 
 
