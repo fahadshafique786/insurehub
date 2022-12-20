@@ -6,15 +6,12 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 
-class OrderController extends BaseController
+class QuotationController extends BaseController
 {
     public function GenerateOrder(Request $request){
-
-//        dd($request->user());
 
         try{
 
@@ -41,8 +38,6 @@ class OrderController extends BaseController
             if($ozoneResponse->code == 200) {
 
                 $orderSuccessResponse =  $ozoneResponse->data;
-
-//                dd($orderSuccessResponse->quotation_details[0]->);
 
                 $orderRequest = [
 //                    'user_id' => auth()->user()->id,
@@ -78,9 +73,52 @@ class OrderController extends BaseController
         }
     }
 
+    public function GetQuotationFormFields(Request $request){
+
+        try{
+
+            $data = Validator::make($request->formDatas, [
+                'sub_class_id' => 'required|integer',
+                'customer_quotation_id' => 'required|integer',
+                'stage' => 'required|in:3',
+                'quotation_risk_id' => 'required|integer',
+            ]);
+
+
+            if ($data->fails()) {
+                return $this->sendError('Validation Error.', $data->errors(),422);
+            }
+
+            $ozoneResponse = $this->OzoneFetchQuotationFormFields($request);
+
+            if($ozoneResponse->code == 200) {
+
+                $orderSuccessResponse =  $ozoneResponse->data;
+
+                return $this->sendResponse($orderSuccessResponse,"Customer Quotation Fields");
+            }
+            else{
+                return $this->sendError('Customer Quotation Form Fields not found!',$ozoneResponse);
+            }
+
+
+        }catch(Exception $e){
+
+            $exceptionCode = "400";
+            if($e->getCode()){
+                $exceptionCode = $e->getCode();
+            }
+
+            return $this->sendError('Customer Quotation Form Fields not found!',$e->getMessage(),$exceptionCode);
+
+        }
+    }
+
     public function ozoneGenerateOrder($request){
 
-        $bearerToken = $request->header()['authorization'][0];
+        $bearerToken = $request->header('Authorization');
+//        dd($bearerToken,$request->header());
+
         $guzzleClient = new Client([
             'verify' => false
         ]);
@@ -143,8 +181,6 @@ class OrderController extends BaseController
             ]
         ];
 
-//        dd($options);
-
         $headers = [
             'Accept' => 'application/json',
             'distribution' => 'd2c',
@@ -156,8 +192,6 @@ class OrderController extends BaseController
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
-
-//        dd($response);
 
         return $response;
     }

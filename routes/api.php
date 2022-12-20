@@ -6,7 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClassesController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\QuotationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,4 +38,6 @@ Route::get('vehicle-by-id',[ClassesController::class,'getVehicleByID'])->name('v
 
 Route::post('product/list',[ProductController::class,'getProductsList'])->name('product-list');
 
-Route::post('order/generate',[OrderController::class,'GenerateOrder'])->name('order-generate');
+Route::post('order/generate',[QuotationController::class,'GenerateOrder'])->name('order-generate');
+
+Route::get('customer/quote-fields',[QuotationController::class,'GetQuotationFormFields'])->name('quote-fields');
