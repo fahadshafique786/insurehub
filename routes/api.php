@@ -7,6 +7,7 @@ use App\Http\Controllers\API\ClassesController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\QuotationController;
+use App\Http\Controllers\API\PaymentMethodController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,3 +44,5 @@ Route::post('order/generate',[QuotationController::class,'GenerateOrder'])->name
 Route::post('customer/quote-fields',[QuotationController::class,'GetQuotationFormFields'])->name('quote-fields');
 
 Route::post('customer/store/quotation-additional-info',[QuotationController::class,'SaveQuotationAdditionalInfo'])->name('store-quote-info');
+
+Route::post('get-payment-methods',[PaymentMethodController::class,'getAllPaymentMethods']);
