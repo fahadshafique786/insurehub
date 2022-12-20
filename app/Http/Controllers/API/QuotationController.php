@@ -86,7 +86,6 @@ class QuotationController extends BaseController
             $data = Validator::make($request->formDatas, [
                 'subclass_id' => 'required|integer',
                 'customer_quotation_id' => 'required|integer',
-                'stage' => 'required|in:3',
                 'quotation_risk_id' => 'required|integer',
             ]);
 
