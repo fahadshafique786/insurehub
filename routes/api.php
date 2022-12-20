@@ -46,3 +46,5 @@ Route::post('customer/quote-fields',[QuotationController::class,'GetQuotationFor
 Route::post('customer/store/quotation-additional-info',[QuotationController::class,'SaveQuotationAdditionalInfo'])->name('store-quote-info');
 
 Route::post('get-payment-methods',[PaymentMethodController::class,'getAllPaymentMethods']);
+
+Route::post('store-payment-info',[PaymentMethodController::class,'StorePaymentInformation']);
