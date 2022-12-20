@@ -84,7 +84,7 @@ class QuotationController extends BaseController
         try{
 
             $data = Validator::make($request->formDatas, [
-                'sub_class_id' => 'required|integer',
+                'subclass_id' => 'required|integer',
                 'customer_quotation_id' => 'required|integer',
                 'stage' => 'required|in:3',
                 'quotation_risk_id' => 'required|integer',
@@ -95,7 +95,7 @@ class QuotationController extends BaseController
                 return $this->sendError('Validation Error.', $data->errors(),422);
             }
 
-            $ozoneResponse = $this->OzoneFetchQuotationFormFields($request);
+            $ozoneResponse = $this->ozoneGetSubClassFormsAttributes($request);
 
             if($ozoneResponse->code == 200) {
 
@@ -120,10 +120,36 @@ class QuotationController extends BaseController
         }
     }
 
+    public function ozoneGetSubClassFormsAttributes($request){
+
+        $guzzleClient = new Client([
+            'verify' => false
+        ]);
+
+        $fields = "customer_quotation_id=".$request->formDatas['customer_quotation_id']."&stage=3&subclass_id=".$request->formDatas['subclass_id']."&quotation_risk_id=".$request->formDatas['quotation_risk_id'];
+
+        $url = "https://live.inxurehub.o3zoned.com/api/customer/quote_fields?" . $fields;
+        $bearerToken = $request->header('Authorization');
+
+        $headers = [
+            'Accept' => 'application/json',
+            'distribution' => 'd2c',
+            'interface' => 'api',
+            'Authorization'=> $bearerToken
+        ];
+
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET',$url,$headers);
+        $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
+
+        $response = json_decode($res->getBody());
+
+        return $response;
+    }
+
+
     public function ozoneGenerateOrder($request){
 
         $bearerToken = $request->header('Authorization');
-//        dd($bearerToken,$request->header());
 
         $guzzleClient = new Client([
             'verify' => false
