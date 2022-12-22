@@ -109,18 +109,18 @@ class QuotationController extends BaseController
 
             Order::where('customer_quotation_id',$request->formDatas['customer_quotation_id'])->update($updateArr);
 
-            return $this->sendResponse('',"Quotation Additional Information Data Saved");
+//            return $this->sendResponse('',"Quotation Additional Information Data Saved");
 
-//            $ozoneResponse = $this->ozoneSaveQuotationAdditionalInfo($request);
+            $ozoneResponse = $this->ozoneSaveQuotationAdditionalInfo($request);
 
-//            if($ozoneResponse->code == 200) {
-//
-//                $orderSuccessResponse =  $ozoneResponse->data;
-//                return $this->sendResponse($orderSuccessResponse,"Quotation Data Updated");
-//            }
-//            else{
-//                return $this->sendError('Quotation Data Update Failed!',$ozoneResponse);
-//            }
+            if($ozoneResponse->code == 200) {
+
+                $orderSuccessResponse =  $ozoneResponse->data;
+                return $this->sendResponse($orderSuccessResponse,"Quotation Data Updated");
+            }
+            else{
+                return $this->sendError('Quotation Data Update Failed!',$ozoneResponse);
+            }
 
 
         }catch(Exception $e){
@@ -337,15 +337,7 @@ class QuotationController extends BaseController
             ]
         ];
 
-//        $options['multipart'] = [
-//            [
-//                'name' => 'additional_accessories[]',
-//                'contents' => $request->formDatas['additional_accessories']
-//            ]
-//        ];
-
-//        dd($options);
-
+        
         $headers = [
             'Accept' => 'application/json',
             'distribution' => 'd2c',
@@ -358,7 +350,7 @@ class QuotationController extends BaseController
 
         $response = json_decode($res->getBody());
 
-        dd($response);
+//        dd($response);
 
         return $response;
     }
