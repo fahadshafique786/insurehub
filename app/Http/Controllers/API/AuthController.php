@@ -20,6 +20,12 @@ use File;
 
 class AuthController extends BaseController
 {
+    protected $OZONE_API_URL;
+
+    public function __construct()
+    {
+        $this->OZONE_API_URL = config('ozone.OZONE_API_URL');
+    }
 
     public function register(Request $request)
     {
@@ -225,8 +231,7 @@ class AuthController extends BaseController
             ]];
 
 
-
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/register');
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL . 'customer/register');
         $res = $guzzleClient->sendAsync($ozoneRequest, $customerData)->wait();
 
         $response = json_decode($res->getBody());
@@ -252,7 +257,7 @@ class AuthController extends BaseController
                 ]
             ]];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/login');
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL . 'customer/login');
 
         $res = $guzzleClient->sendAsync($ozoneRequest, $customerData)->wait();
 

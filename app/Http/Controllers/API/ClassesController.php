@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Validator;
 
 class ClassesController extends BaseController
 {
+    protected $OZONE_API_URL;
+
+    public function __construct()
+    {
+        $this->OZONE_API_URL = config('ozone.OZONE_API_URL');
+    }
+
     public function getClasses(){
 
         try{
@@ -153,7 +160,7 @@ class ClassesController extends BaseController
             'interface' => 'api',
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', 'https://live.inxurehub.o3zoned.com/api/get_mainclasses',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', $this->OZONE_API_URL.'get_mainclasses',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
 
         $response = json_decode($res->getBody());
@@ -174,7 +181,7 @@ class ClassesController extends BaseController
             'interface' => 'api',
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', 'https://live.inxurehub.o3zoned.com/api/get_subclasses',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('GET', $this->OZONE_API_URL.'get_subclasses',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest)->wait();
 
         $response = json_decode($res->getBody());
@@ -204,7 +211,7 @@ class ClassesController extends BaseController
             'interface' => 'api',
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/get_subclass_form',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL.'get_subclass_form',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
@@ -237,7 +244,7 @@ class ClassesController extends BaseController
             'interface' => 'api',
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/get_child_form_field_values',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL.'get_child_form_field_values',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());

@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Validator;
 
 class QuotationController extends BaseController
 {
+    protected $OZONE_API_URL;
+
+    public function __construct()
+    {
+        $this->OZONE_API_URL = config('ozone.OZONE_API_URL');
+    }
+
     public function GenerateOrder(Request $request){
 
         try{
@@ -87,19 +94,18 @@ class QuotationController extends BaseController
             $data = Validator::make($request->formDatas, [
                 'customer_quotation_id' => 'required|integer',
                 'quotation_risk_id' => 'required|integer',
-                'date_of_birth' => 'required',
-                'first_name' => 'required|string',
-                'last_name' => 'required|string',
-                'cnic_number' => 'required', //|digits:13
-                'mobile_no' => 'required',
-                'city' => 'required|integer',
+//                'date_of_birth' => 'required',
+//                'first_name' => 'required|string',
+//                'last_name' => 'required|string',
+//                'cnic_number' => 'required',
+//                'mobile_no' => 'required',
+//                'city' => 'required|integer',
             ]);
-
-//            |numeric|starts_with:92
 
             if ($data->fails()) {
                 return $this->sendError('Validation Error.', $data->errors(),422);
             }
+
 
             $additionalInformationJson = json_encode($request->formDatas);
 
@@ -183,7 +189,7 @@ class QuotationController extends BaseController
 
         $fields = "customer_quotation_id=".$request->formDatas['customer_quotation_id']."&stage=3&subclass_id=".$request->formDatas['subclass_id']."&quotation_risk_id=".$request->formDatas['quotation_risk_id'];
 
-        $url = "https://live.inxurehub.o3zoned.com/api/customer/quote_fields?" . $fields;
+        $url = $this->OZONE_API_URL . "customer/quote_fields?" . $fields;
         $bearerToken = $request->header('Authorization');
 
         $headers = [
@@ -274,7 +280,7 @@ class QuotationController extends BaseController
             'Authorization'=> $bearerToken
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/quotation',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL . 'customer/quotation',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
@@ -290,45 +296,169 @@ class QuotationController extends BaseController
             'verify' => false
         ]);
 
+        $cnicExpiryDate = (isset($request->formDatas['cnic_expirydate'])) ? $request->formDatas['cnic_expirydate'] : "";
+
+        $vehicleImage = public_path('classes_img').'/'."motor.png";
+
+        /******* static payload prepared for temporary testing purpose **********/
         $options = [
 
             'multipart' => [
                 [
                     'name' => 'customer_quotation_id',
-                    'contents' => $request->formDatas['customer_quotation_id']
+                    'contents' => (isset($request->formDatas['customer_quotation_id'])) ? $request->formDatas['customer_quotation_id'] : ""
                 ],
                 [
                     'name' => 'quotation_risk_id',
-                    'contents' => $request->formDatas['quotation_risk_id']
+                    'contents' => (isset($request->formDatas['quotation_risk_id'])) ? $request->formDatas['quotation_risk_id'] : ""
                 ],
                 [
                     'name' => 'first_name[]',
-                    'contents' => $request->formDatas['first_name']
+                    'contents' =>  (isset($request->formDatas['first_name'])) ? $request->formDatas['first_name'] : ""
                 ],
                 [
                     'name' => 'last_name[]',
-                    'contents' => $request->formDatas['last_name']
+                    'contents' =>  (isset($request->formDatas['last_name'])) ? $request->formDatas['last_name'] : ""
                 ],
                 [
                     'name' => 'date_of_birth[]',
                     'contents' => Carbon::parse($request->formDatas['date_of_birth'])->format('d-m-Y')
-//                    'contents' => date('d-m-y',strtotime($request->formDatas['date_of_birth']))
+                ],
+                [
+                    'name' => 'cnic[]',
+                    'contents' =>  (isset($request->formDatas['cnic_number'])) ? $request->formDatas['cnic_number'] : ""
                 ],
                 [
                     'name' => 'cnic_number[]',
-                    'contents' => $request->formDatas['cnic_number']
+                    'contents' =>  (isset($request->formDatas['cnic_number'])) ? $request->formDatas['cnic_number'] : ""
                 ],
                 [
                     'name' => 'mobile_no[]',
-                    'contents' => $request->formDatas['mobile_no']
-                ],
-                [
-                    'name' => 'email_address[]',
-                    'contents' => $request->formDatas['email_id']
+                    'contents' =>  (isset($request->formDatas['mobile_no'])) ? $request->formDatas['mobile_no'] : ""
                 ],
                 [
                     'name' => 'city[]',
-                    'contents' => $request->formDatas['city']
+                    'contents' =>  (isset($request->formDatas['city'])) ? $request->formDatas['city'] : ""
+                ],
+                [
+                    'name' => 'father_name[][]',
+                    'contents' => (isset($request->formDatas['father_name'])) ? $request->formDatas['father_name'] : ""
+                ],
+                [
+                    'name' => 'mother_name[][]',
+                    'contents' => (isset($request->formDatas['mother_name'])) ? $request->formDatas['mother_name'] : ""
+                ],
+                [
+                    'name' => 'gender[][]',
+                    'contents' => (isset($request->formDatas['gender'])) ?  $request->formDatas['gender'] : ""
+                ],
+                [
+                    'name' => 'nationality[][]',
+                    'contents' => (isset($request->formDatas['nationality'])) ? $request->formDatas['nationality'] : ""
+                ],
+                [
+                    'name' => 'cnic_issuancedate[][]',
+                    'contents' => (isset($request->formDatas['cnic_issuancedate'])) ? $request->formDatas['cnic_issuancedate'] : ""
+                ],
+                [
+                    'name' => 'cnic_expirydate[][]',
+                    'contents' => Carbon::parse($cnicExpiryDate)->format('d-m-Y')
+                ],
+                [
+                    'name' => 'resident_status[][]',
+                    'contents' => (isset($request->formDatas['resident_status'])) ? $request->formDatas['resident_status'] : ""
+                ],
+                [
+                    'name' => 'profession[][]',
+                    'contents' => (isset($request->formDatas['profession'])) ? $request->formDatas['profession'] : ""
+                ],
+                [
+                    'name' => 'foreign_pep[][]',
+                    'contents' => (isset($request->formDatas['foreign_pep'])) ? $request->formDatas['foreign_pep'] : ""
+                ],
+                [
+                    'name' => 'domestic_pep[][]',
+                    'contents' => (isset($request->formDatas['domestic_pep'])) ? $request->formDatas['domestic_pep'] : ""
+                ],
+                [
+                    'name' => 'international_pep[][]',
+                    'contents' => (isset($request->formDatas['international_pep'])) ? $request->formDatas['international_pep'] : ""
+                ],
+                [
+                    'name' => 'pep_relative[][]',
+                    'contents' => (isset($request->formDatas['pep_relative'])) ? $request->formDatas['pep_relative'] : ""
+                ],
+                [
+                    'name' => 'email_id[]',
+                    'contents' => (isset($request->formDatas['email_id'])) ? $request->formDatas['email_id'] : ""
+                ],
+                [
+                    'name' => 'address[][]',
+                    'contents' => (isset($request->formDatas['address'])) ? $request->formDatas['address'] : ""
+                ],
+                [
+                    'name' => 'registration_book[]',
+                    'contents' => (isset($request->formDatas['reg_no'])) ? $request->formDatas['reg_no'] : ""
+                ],
+                [
+                    'name' => 'vehicle_images[0][]',
+                    'contents' => \GuzzleHttp\Psr7\Utils::tryFopen($vehicleImage, 'r'),
+                    'filename' => $vehicleImage,
+                    'headers' => [
+                        'Content-Type' => '<Content-type header>'
+                    ]
+                ],
+                [
+                    'name' => 'vehicle_images[0][]',
+                    'contents' => \GuzzleHttp\Psr7\Utils::tryFopen($vehicleImage, 'r'),
+                    'filename' => $vehicleImage,
+                    'headers' => [
+                        'Content-Type' => '<Content-type header>'
+                    ]
+                ],
+                [
+                    'name' => 'vehicle_images[0][]',
+                    'contents' => \GuzzleHttp\Psr7\Utils::tryFopen($vehicleImage, 'r'),
+                    'filename' => $vehicleImage,
+                    'headers' => [
+                        'Content-Type' => '<Content-type header>'
+                    ]
+                ],
+                [
+                    'name' => 'vehicle_images[0][]',
+                    'contents' => \GuzzleHttp\Psr7\Utils::tryFopen($vehicleImage, 'r'),
+                    'filename' => $vehicleImage,
+                    'headers' => [
+                        'Content-Type' => '<Content-type header>'
+                    ]
+                ],
+                [
+                    'name' => 'reg_no[][]',
+                    'contents' => (isset($request->formDatas['reg_no'])) ? $request->formDatas['reg_no'] : "1"
+                ],
+                [
+                    'name' => 'engine_no[]',
+                    'contents' => (isset($request->formDatas['engine_no'])) ? $request->formDatas['engine_no'] : "1"
+                ],
+                [
+                    'name' => 'place_of_birth[]',
+                    'contents' => (isset($request->formDatas['place_of_birth'])) ? $request->formDatas['place_of_birth'] : ""
+                ],
+                [
+                    'name' => 'chassis_no[]',
+                    'contents' => (isset($request->formDatas['chassis_no'])) ? $request->formDatas['chassis_no'] : ""
+                ],
+                [
+                    'name' => 'vehicle_color[][]',
+                    'contents' => (isset($request->formDatas['vehicle_color'])) ? $request->formDatas['vehicle_color'] : ""
+                ],
+                [
+                    'name' => 'vehicle_color[][]',
+                    'contents' => (isset($request->formDatas['vehicle_color'])) ? $request->formDatas['vehicle_color'] : ""
+                ],
+                [
+                    'name' => 'additional_accessories[]',
+                    'contents' => (isset($request->formDatas['additional_accessories'])) ? $request->formDatas['additional_accessories'] : ""
                 ],
                 [
                     'name' => 'parent_id[]',
@@ -337,7 +467,7 @@ class QuotationController extends BaseController
             ]
         ];
 
-        
+
         $headers = [
             'Accept' => 'application/json',
             'distribution' => 'd2c',
@@ -345,12 +475,10 @@ class QuotationController extends BaseController
             'Authorization'=> $bearerToken
         ];
 
-        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', 'https://live.inxurehub.o3zoned.com/api/customer/quotation_additional_information',$headers);
+        $ozoneRequest = new \GuzzleHttp\Psr7\Request('POST', $this->OZONE_API_URL.'customer/quotation_additional_information',$headers);
         $res = $guzzleClient->sendAsync($ozoneRequest,$options)->wait();
 
         $response = json_decode($res->getBody());
-
-//        dd($response);
 
         return $response;
     }
